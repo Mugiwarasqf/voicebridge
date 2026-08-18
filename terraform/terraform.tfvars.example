@@ -1,0 +1,16 @@
+# Copy this file to terraform.tfvars and fill in your own values.
+# terraform.tfvars is git-ignored on purpose - never commit real values.
+
+alert_email            = "you@example.com"
+cognito_domain_prefix  = "voicebridge-yourname"   # must be globally unique
+aws_region              = "eu-west-2"
+environment              = "dev"
+
+# Tighten this to your CloudFront domain after the first apply, e.g.
+# "https://d123abcxyz.cloudfront.net". Leave as "*" only while developing locally.
+cors_allowed_origin = "*"
+
+# After the first `terraform apply`, copy the printed cloudfront_url in here
+# and re-apply so Cognito Hosted UI is allowed to redirect back to your real
+# site instead of just localhost.
+oauth_callback_urls = ["http://localhost:5173"]

@@ -1,0 +1,1 @@
+boto3-stubs[boto3,s3,transcribe,dynamodb,polly]
