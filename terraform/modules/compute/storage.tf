@@ -3,16 +3,16 @@
 #   outputs/{userId}/{jobId}.mp3        synthesized speech from Polly (TTS)
 #   transcripts/{userId}/{jobId}.json   raw Transcribe job output (written by Transcribe itself)
 #
-# The uploads/ -> Lambda trigger is wired up in the lambda module (not here) to
-# avoid a module dependency cycle: the trigger needs the Lambda ARN, and the
-# Lambda's IAM policy needs this bucket's ARN.
+# The uploads/ -> Lambda trigger is wired up in lambda.tf (not here): it
+# needs the start_transcription Lambda's ARN, which now lives in the same
+# module, so there's no cross-module cycle concern here anymore.
 
-resource "random_id" "bucket_suffix" {
+resource "random_id" "audio_bucket_suffix" {
   byte_length = 4
 }
 
 resource "aws_s3_bucket" "audio" {
-  bucket = "${var.name_prefix}-audio-${random_id.bucket_suffix.hex}"
+  bucket = "${var.name_prefix}-audio-${random_id.audio_bucket_suffix.hex}"
 
   tags = {
     Name = "${var.name_prefix}-audio"

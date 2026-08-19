@@ -88,3 +88,31 @@ resource "aws_cognito_user_pool_domain" "main" {
   domain       = var.cognito_domain_prefix
   user_pool_id = aws_cognito_user_pool.main.id
 }
+
+# ── Lambda execution role -- identity only. The permissions policy lives in
+# the compute module, next to the resources it grants access to (see
+# aws_iam_role_policy.lambda_permissions in modules/compute/lambda.tf).
+# This role needs no inputs from compute or database, so it can safely live
+# here; the app-specific policy needs ARNs from both of those modules and
+# would create a security -> compute -> security cycle if it lived here too
+# (the same class of problem modules/compute/storage.tf's uploads-trigger
+# comment documents for the S3<->Lambda wiring).
+resource "aws_iam_role" "lambda_exec" {
+  name = "${var.name_prefix}-lambda-exec"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "lambda.amazonaws.com" }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "basic_execution" {
+  role       = aws_iam_role.lambda_exec.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+data "aws_region" "current" {}
