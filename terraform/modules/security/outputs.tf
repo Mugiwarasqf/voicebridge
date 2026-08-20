@@ -18,4 +18,10 @@ output "issuer_url" {
   value = "https://cognito-idp.${data.aws_region.current.name}.amazonaws.com/${aws_cognito_user_pool.main.id}"
 }
 
-data "aws_region" "current" {}
+output "lambda_exec_role_arn" {
+  value = aws_iam_role.lambda_exec.arn
+}
+
+output "lambda_exec_role_name" {
+  value = aws_iam_role.lambda_exec.name
+}

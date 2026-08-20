@@ -1,9 +1,9 @@
-resource "random_id" "bucket_suffix" {
+resource "random_id" "frontend_bucket_suffix" {
   byte_length = 4
 }
 
 resource "aws_s3_bucket" "site" {
-  bucket = "${var.name_prefix}-site-${random_id.bucket_suffix.hex}"
+  bucket = "${var.name_prefix}-site-${random_id.frontend_bucket_suffix.hex}"
 }
 
 resource "aws_s3_bucket_public_access_block" "site" {
@@ -37,7 +37,7 @@ resource "aws_cloudfront_distribution" "site" {
     cached_methods         = ["GET", "HEAD"]
     target_origin_id       = "s3-site"
     viewer_protocol_policy = "redirect-to-https"
-    compress                = true
+    compress               = true
 
     forwarded_values {
       query_string = false
@@ -93,22 +93,22 @@ resource "aws_s3_bucket_policy" "cloudfront_read" {
 # index.html is templated with the API/Cognito config so the SPA needs zero
 # build step - just deploy static files with real values baked in.
 resource "aws_s3_object" "index" {
-  bucket       = aws_s3_bucket.site.id
-  key          = "index.html"
-  content      = templatefile("${path.module}/../../../frontend/index.html.tpl", {
-    api_base_url          = var.api_base_url
-    cognito_user_pool_id   = var.cognito_user_pool_id
-    cognito_client_id      = var.cognito_user_pool_client_id
-    cognito_domain         = var.cognito_domain
-    aws_region             = var.aws_region
+  bucket = aws_s3_bucket.site.id
+  key    = "index.html"
+  content = templatefile("${path.module}/../../../frontend/index.html.tpl", {
+    api_base_url         = aws_apigatewayv2_stage.main.invoke_url
+    cognito_user_pool_id = var.cognito_user_pool_id
+    cognito_client_id    = var.cognito_user_pool_client_id
+    cognito_domain       = var.cognito_domain
+    aws_region           = var.aws_region
   })
   content_type = "text/html"
-  etag         = md5(templatefile("${path.module}/../../../frontend/index.html.tpl", {
-    api_base_url          = var.api_base_url
-    cognito_user_pool_id   = var.cognito_user_pool_id
-    cognito_client_id      = var.cognito_user_pool_client_id
-    cognito_domain         = var.cognito_domain
-    aws_region             = var.aws_region
+  etag = md5(templatefile("${path.module}/../../../frontend/index.html.tpl", {
+    api_base_url         = aws_apigatewayv2_stage.main.invoke_url
+    cognito_user_pool_id = var.cognito_user_pool_id
+    cognito_client_id    = var.cognito_user_pool_client_id
+    cognito_domain       = var.cognito_domain
+    aws_region           = var.aws_region
   }))
 }
 

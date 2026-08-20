@@ -1,25 +1,11 @@
-# ── IAM role shared by all five functions, scoped to exactly what they need ────
-resource "aws_iam_role" "lambda_exec" {
-  name = "${var.name_prefix}-lambda-exec"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action    = "sts:AssumeRole"
-      Effect    = "Allow"
-      Principal = { Service = "lambda.amazonaws.com" }
-    }]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "basic_execution" {
-  role       = aws_iam_role.lambda_exec.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-}
-
+# ── Lambda execution permissions -- the role's identity lives in the
+# security module (modules/security/main.tf); this inline policy lives here
+# instead, next to the resources it grants access to, to avoid the module
+# dependency cycle documented on aws_iam_role.lambda_exec in
+# modules/security/main.tf.
 resource "aws_iam_role_policy" "lambda_permissions" {
   name = "${var.name_prefix}-lambda-policy"
-  role = aws_iam_role.lambda_exec.id
+  role = var.lambda_exec_role_name
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -33,8 +19,8 @@ resource "aws_iam_role_policy" "lambda_permissions" {
           "s3:ListBucket"
         ]
         Resource = [
-          var.s3_bucket_arn,
-          "${var.s3_bucket_arn}/*"
+          aws_s3_bucket.audio.arn,
+          "${aws_s3_bucket.audio.arn}/*"
         ]
       },
       {
@@ -96,7 +82,7 @@ resource "aws_cloudwatch_log_group" "get_jobs" {
 locals {
   common_env = {
     DYNAMODB_TABLE  = var.dynamodb_table_name
-    S3_BUCKET_NAME  = var.s3_bucket_name
+    S3_BUCKET_NAME  = aws_s3_bucket.audio.bucket
     AWS_REGION_NAME = var.aws_region
     ENVIRONMENT     = var.environment
     JOB_TTL_DAYS    = tostring(var.job_ttl_days)
@@ -106,7 +92,7 @@ locals {
 # ── POST /stt/uploads -> presigned S3 PUT URL + job record ────────────────────
 resource "aws_lambda_function" "get_upload_url" {
   function_name    = "${var.name_prefix}-get-upload-url"
-  role             = aws_iam_role.lambda_exec.arn
+  role             = var.lambda_exec_role_arn
   handler          = "get_upload_url.handler"
   runtime          = var.lambda_runtime
   memory_size      = var.lambda_memory_mb
@@ -124,7 +110,7 @@ resource "aws_lambda_function" "get_upload_url" {
 # ── S3 uploads/ trigger -> kicks off the Transcribe job ────────────────────────
 resource "aws_lambda_function" "start_transcription" {
   function_name    = "${var.name_prefix}-start-transcription"
-  role             = aws_iam_role.lambda_exec.arn
+  role             = var.lambda_exec_role_arn
   handler          = "start_transcription.handler"
   runtime          = var.lambda_runtime
   memory_size      = var.lambda_memory_mb
@@ -144,11 +130,11 @@ resource "aws_lambda_permission" "s3_invoke_start_transcription" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.start_transcription.function_name
   principal     = "s3.amazonaws.com"
-  source_arn    = var.s3_bucket_arn
+  source_arn    = aws_s3_bucket.audio.arn
 }
 
 resource "aws_s3_bucket_notification" "audio_uploaded" {
-  bucket = var.s3_bucket_name
+  bucket = aws_s3_bucket.audio.id
 
   lambda_function {
     lambda_function_arn = aws_lambda_function.start_transcription.arn
@@ -162,7 +148,7 @@ resource "aws_s3_bucket_notification" "audio_uploaded" {
 # ── EventBridge "Transcribe Job State Change" -> writes the result to DynamoDB ─
 resource "aws_lambda_function" "process_transcription_result" {
   function_name    = "${var.name_prefix}-process-transcription-result"
-  role             = aws_iam_role.lambda_exec.arn
+  role             = var.lambda_exec_role_arn
   handler          = "process_transcription_result.handler"
   runtime          = var.lambda_runtime
   memory_size      = var.lambda_memory_mb
@@ -180,7 +166,7 @@ resource "aws_lambda_function" "process_transcription_result" {
 # ── POST /tts -> synchronous Polly synthesis (<=3000 chars) ───────────────────
 resource "aws_lambda_function" "synthesize_speech" {
   function_name    = "${var.name_prefix}-synthesize-speech"
-  role             = aws_iam_role.lambda_exec.arn
+  role             = var.lambda_exec_role_arn
   handler          = "synthesize_speech.handler"
   runtime          = var.lambda_runtime
   memory_size      = var.lambda_memory_mb
@@ -198,7 +184,7 @@ resource "aws_lambda_function" "synthesize_speech" {
 # ── GET /jobs, GET /jobs/{jobId} -> history + status polling ──────────────────
 resource "aws_lambda_function" "get_jobs" {
   function_name    = "${var.name_prefix}-get-jobs"
-  role             = aws_iam_role.lambda_exec.arn
+  role             = var.lambda_exec_role_arn
   handler          = "get_jobs.handler"
   runtime          = var.lambda_runtime
   memory_size      = var.lambda_memory_mb
@@ -235,7 +221,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
 
   alarm_name          = "${each.value}-errors"
   comparison_operator = "GreaterThanThreshold"
-  evaluation_periods   = 1
+  evaluation_periods  = 1
   metric_name         = "Errors"
   namespace           = "AWS/Lambda"
   period              = 300

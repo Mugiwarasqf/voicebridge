@@ -37,7 +37,7 @@ resource "aws_apigatewayv2_stage" "main" {
     destination_arn = aws_cloudwatch_log_group.api_gateway.arn
     format = jsonencode({
       requestId      = "$context.requestId"
-      ip              = "$context.identity.sourceIp"
+      ip             = "$context.identity.sourceIp"
       requestTime    = "$context.requestTime"
       httpMethod     = "$context.httpMethod"
       routeKey       = "$context.routeKey"
@@ -61,20 +61,20 @@ resource "aws_cloudwatch_log_group" "api_gateway" {
 locals {
   routes = {
     "POST /tts" = {
-      lambda_invoke_arn = var.synthesize_speech_lambda_invoke_arn
-      lambda_name       = var.synthesize_speech_lambda_name
+      lambda_invoke_arn = aws_lambda_function.synthesize_speech.invoke_arn
+      lambda_name       = aws_lambda_function.synthesize_speech.function_name
     }
     "POST /stt/uploads" = {
-      lambda_invoke_arn = var.get_upload_url_lambda_invoke_arn
-      lambda_name       = var.get_upload_url_lambda_name
+      lambda_invoke_arn = aws_lambda_function.get_upload_url.invoke_arn
+      lambda_name       = aws_lambda_function.get_upload_url.function_name
     }
     "GET /jobs" = {
-      lambda_invoke_arn = var.get_jobs_lambda_invoke_arn
-      lambda_name       = var.get_jobs_lambda_name
+      lambda_invoke_arn = aws_lambda_function.get_jobs.invoke_arn
+      lambda_name       = aws_lambda_function.get_jobs.function_name
     }
     "GET /jobs/{jobId}" = {
-      lambda_invoke_arn = var.get_jobs_lambda_invoke_arn
-      lambda_name       = var.get_jobs_lambda_name
+      lambda_invoke_arn = aws_lambda_function.get_jobs.invoke_arn
+      lambda_name       = aws_lambda_function.get_jobs.function_name
     }
   }
 }

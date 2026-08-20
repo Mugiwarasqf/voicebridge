@@ -19,13 +19,13 @@ resource "aws_cloudwatch_event_rule" "transcribe_job_state_change" {
 resource "aws_cloudwatch_event_target" "process_transcription_result" {
   rule      = aws_cloudwatch_event_rule.transcribe_job_state_change.name
   target_id = "process-transcription-result"
-  arn       = var.process_transcription_result_lambda_arn
+  arn       = aws_lambda_function.process_transcription_result.arn
 }
 
 resource "aws_lambda_permission" "eventbridge_invoke" {
   statement_id  = "AllowEventBridgeInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = var.process_transcription_result_lambda_name
+  function_name = aws_lambda_function.process_transcription_result.function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.transcribe_job_state_change.arn
 }
