@@ -34,7 +34,7 @@ function WorkspaceShell({ children }: { children: React.ReactNode }) {
       {/* Workspace top bar */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#EEEEEE]">
         <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
-          <Link href="/" aria-label="VoiceBridge home">
+          <Link href="/app" aria-label="VoiceBridge workspace">
             <Logo size={22} />
           </Link>
           <div className="flex items-center gap-3">

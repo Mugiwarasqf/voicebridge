@@ -50,7 +50,7 @@ export function PlaygroundCard({ api, onJobComplete }: PlaygroundCardProps) {
       {/* Form content */}
       <div className="p-5">
         {activeTab === "tts" ? (
-          <TtsForm api={api} />
+          <TtsForm api={api} onJobComplete={onJobComplete} />
         ) : (
           <SttForm api={api} onJobComplete={onJobComplete} />
         )}

@@ -15,12 +15,24 @@ import { AudioPlayer } from "./AudioPlayer";
 const MAX_CHARS = 3000;
 const WARN_CHARS = 2700;
 
-interface TtsFormProps {
-  api: ApiClient;
+function getVoiceLabel(voiceId?: string): string {
+  if (!voiceId) return "";
+  return (POLLY_VOICE_LABELS as Record<string, string>)[voiceId] ?? voiceId;
 }
 
-export function TtsForm({ api }: TtsFormProps) {
+interface TtsFormProps {
+  api: ApiClient;
+  onJobComplete?: () => void;
+}
+
+export function TtsForm({ api, onJobComplete }: TtsFormProps) {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [lastGenerated, setLastGenerated] = useState<{
+    text: string;
+    voiceId: string;
+    engine: string;
+  } | null>(null);
+  const [dismissedNotice, setDismissedNotice] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const {
@@ -35,11 +47,26 @@ export function TtsForm({ api }: TtsFormProps) {
   });
 
   const textVal = watch("text");
+  const currentVoice = watch("voiceId");
+  const currentEngine = watch("engine");
   const charCount = textVal?.length ?? 0;
+
+  // Detect changes between form state and currently synthesized audio
+  const isVoiceChanged = Boolean(
+    lastGenerated && audioUrl && currentVoice !== lastGenerated.voiceId
+  );
+  const isEngineChanged = Boolean(
+    lastGenerated && audioUrl && currentEngine !== lastGenerated.engine
+  );
+  const isTextChanged = Boolean(
+    lastGenerated && audioUrl && textVal.trim() !== lastGenerated.text.trim()
+  );
+  const hasChanges = isVoiceChanged || isEngineChanged || isTextChanged;
 
   const onSubmit = async (values: TtsFormValues) => {
     setError(null);
     setAudioUrl(null);
+    setDismissedNotice(false);
     try {
       const result = await api.postTts({
         text: values.text,
@@ -49,6 +76,12 @@ export function TtsForm({ api }: TtsFormProps) {
       // Fetch the audio blob to create an object URL for the player
       const blob = await fetch(result.audioUrl).then((r) => r.blob());
       setAudioUrl(URL.createObjectURL(blob));
+      setLastGenerated({
+        text: values.text,
+        voiceId: values.voiceId,
+        engine: values.engine,
+      });
+      onJobComplete?.();
     } catch (err) {
       const msg =
         err instanceof ApiError
@@ -97,14 +130,27 @@ export function TtsForm({ api }: TtsFormProps) {
       <div className="flex flex-wrap gap-3 items-start">
         {/* Voice */}
         <div className="flex-1 min-w-[160px]">
-          <label htmlFor="tts-voice" className="block text-xs font-medium text-[#6B7280] mb-1.5">
-            Voice
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label htmlFor="tts-voice" className="block text-xs font-medium text-[#6B7280]">
+              Voice
+            </label>
+            {isVoiceChanged && (
+              <span className="text-[10px] font-semibold text-amber-600 animate-pulse">
+                • Changed
+              </span>
+            )}
+          </div>
           <div className="relative">
             <select
               id="tts-voice"
-              {...register("voiceId")}
-              className="w-full appearance-none bg-[#F3F4F6] text-[#0A0A0A] text-sm font-medium px-3.5 py-2.5 pr-8 rounded-xl cursor-pointer border border-transparent hover:border-[#E5E7EB] outline-none focus-visible:outline-[#111111] transition-colors"
+              {...register("voiceId", {
+                onChange: () => setDismissedNotice(false),
+              })}
+              className={`w-full appearance-none text-[#0A0A0A] text-sm font-medium px-3.5 py-2.5 pr-8 rounded-xl cursor-pointer border outline-none focus-visible:outline-[#111111] transition-all ${
+                isVoiceChanged
+                  ? "bg-amber-50/40 border-amber-300 text-amber-900"
+                  : "bg-[#F3F4F6] border-transparent hover:border-[#E5E7EB]"
+              }`}
             >
               {POLLY_VOICES.map((v) => (
                 <option key={v} value={v}>
@@ -121,14 +167,27 @@ export function TtsForm({ api }: TtsFormProps) {
 
         {/* Engine */}
         <div className="flex-1 min-w-[140px]">
-          <label htmlFor="tts-engine" className="block text-xs font-medium text-[#6B7280] mb-1.5">
-            Engine
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label htmlFor="tts-engine" className="block text-xs font-medium text-[#6B7280]">
+              Engine
+            </label>
+            {isEngineChanged && (
+              <span className="text-[10px] font-semibold text-amber-600 animate-pulse">
+                • Changed
+              </span>
+            )}
+          </div>
           <div className="relative">
             <select
               id="tts-engine"
-              {...register("engine")}
-              className="w-full appearance-none bg-[#F3F4F6] text-[#0A0A0A] text-sm font-medium px-3.5 py-2.5 pr-8 rounded-xl cursor-pointer border border-transparent hover:border-[#E5E7EB] outline-none focus-visible:outline-[#111111] transition-colors"
+              {...register("engine", {
+                onChange: () => setDismissedNotice(false),
+              })}
+              className={`w-full appearance-none text-[#0A0A0A] text-sm font-medium px-3.5 py-2.5 pr-8 rounded-xl cursor-pointer border outline-none focus-visible:outline-[#111111] transition-all ${
+                isEngineChanged
+                  ? "bg-amber-50/40 border-amber-300 text-amber-900"
+                  : "bg-[#F3F4F6] border-transparent hover:border-[#E5E7EB]"
+              }`}
             >
               <option value="neural">Neural (higher quality)</option>
               <option value="standard">Standard (cheaper)</option>
@@ -146,19 +205,89 @@ export function TtsForm({ api }: TtsFormProps) {
             id="tts-submit-btn"
             type="submit"
             disabled={isSubmitting || charCount > MAX_CHARS}
-            className="btn-pill btn-solid px-6 py-2.5 text-sm self-end"
+            className={`btn-pill btn-solid px-6 py-2.5 text-sm self-end transition-all ${
+              hasChanges && audioUrl
+                ? "ring-2 ring-[#0A0A0A] ring-offset-2 scale-[1.02] shadow-md"
+                : ""
+            }`}
             style={{ marginTop: "auto" }}
           >
             {isSubmitting ? (
               <span className="flex items-center gap-2">
                 <span className="spinner" /> Synthesizing…
               </span>
+            ) : hasChanges && audioUrl ? (
+              "Re-synthesize Audio"
             ) : (
               "Synthesize"
             )}
           </button>
         </div>
       </div>
+
+      {/* Professional Toast Notification for Voice/Settings Change */}
+      {hasChanges && !dismissedNotice && audioUrl && lastGenerated && (
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-50/90 via-orange-50/70 to-amber-50/90 border border-amber-200/80 p-3.5 shadow-sm animate-fade-in-up transition-all duration-300">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              {/* Dynamic waveform icon */}
+              <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/25 text-amber-700 flex items-center justify-center flex-shrink-0 shadow-xs">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M2 8v0M4.5 5v6M7 2v12M9.5 4v8M12 6v4M14 8v0" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-[#0A0A0A] flex items-center gap-2 flex-wrap">
+                  {isVoiceChanged ? (
+                    <>
+                      <span>Voice switched:</span>
+                      <span className="line-through text-[#9CA3AF] font-normal">
+                        {getVoiceLabel(lastGenerated.voiceId)}
+                      </span>
+                      <span className="text-[#0A0A0A]">→</span>
+                      <span className="text-amber-900 bg-amber-200/60 px-2 py-0.5 rounded-md font-bold text-[11px]">
+                        {getVoiceLabel(currentVoice)}
+                      </span>
+                    </>
+                  ) : isEngineChanged ? (
+                    <>
+                      <span>Engine switched to</span>
+                      <span className="text-amber-900 bg-amber-200/60 px-2 py-0.5 rounded-md font-bold text-[11px] capitalize">
+                        {currentEngine}
+                      </span>
+                    </>
+                  ) : (
+                    <span>Text updated</span>
+                  )}
+                </p>
+                <p className="text-[11px] text-[#6B7280] mt-0.5 truncate">
+                  The audio player below is currently playing the previous synthesis. Click <span className="font-semibold text-[#0A0A0A]">Re-synthesize</span> to generate with the new voice.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="btn-pill btn-solid text-xs px-3.5 py-1.5 font-semibold shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+              >
+                {isSubmitting ? "Synthesizing…" : "Synthesize Now"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDismissedNotice(true)}
+                className="w-6 h-6 rounded-lg text-[#9CA3AF] hover:text-[#0A0A0A] hover:bg-black/5 flex items-center justify-center transition-colors text-xs"
+                title="Dismiss"
+                aria-label="Dismiss notice"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Error */}
       {error && (
@@ -171,8 +300,31 @@ export function TtsForm({ api }: TtsFormProps) {
         </div>
       )}
 
-      {/* Audio player */}
-      {audioUrl && <AudioPlayer src={audioUrl} />}
+      {/* Audio player with Status Header */}
+      {audioUrl && (
+        <div className="space-y-1 pt-1">
+          {lastGenerated && (
+            <div className="flex items-center justify-between text-xs px-1 text-[#6B7280]">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="font-medium text-[#0A0A0A]">
+                  Audio output:{" "}
+                  <span className="text-[#6B7280] font-normal">
+                    {getVoiceLabel(lastGenerated.voiceId)} ({lastGenerated.engine})
+                  </span>
+                </span>
+              </div>
+              {hasChanges && (
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/70">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+                  Settings changed
+                </span>
+              )}
+            </div>
+          )}
+          <AudioPlayer src={audioUrl} />
+        </div>
+      )}
     </form>
   );
 }

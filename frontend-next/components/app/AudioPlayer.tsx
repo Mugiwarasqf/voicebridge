@@ -67,6 +67,7 @@ export function AudioPlayer({ src }: AudioPlayerProps) {
 
       {/* Play/pause */}
       <button
+        type="button"
         onClick={togglePlay}
         className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-full bg-[#0A0A0A] text-white hover:bg-[#2a2a2a] active:scale-95 transition-all"
         aria-label={playing ? "Pause" : "Play"}

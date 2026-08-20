@@ -17,16 +17,15 @@ export function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Hide marketing nav on authenticated workspace
-  const isAppPage = pathname?.startsWith("/app");
-  if (isAppPage) return null;
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Hide marketing nav on authenticated workspace
+  const isAppPage = pathname?.startsWith("/app");
+  if (isAppPage) return null;
 
   return (
     <header
