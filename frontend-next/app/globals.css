@@ -1,0 +1,196 @@
+@import "tailwindcss";
+
+/* ── Tailwind v4: custom theme tokens ─────────────────────────────────────── */
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", monospace;
+
+  /* Brand colors */
+  --color-brand-bg: #FAFAFA;
+  --color-brand-section-alt: #F5F6F8;
+  --color-brand-dark: #0B0B0F;
+  --color-brand-text: #0A0A0A;
+  --color-brand-muted: #6B7280;
+  --color-brand-muted-light: #9CA3AF;
+  --color-brand-border: #EEEEEE;
+  --color-brand-border-mid: #E5E7EB;
+  --color-brand-accent: #111111;
+  --color-brand-hero-from: #EAF1FB;
+
+  /* Border radii */
+  --radius-card: 16px;
+  --radius-card-lg: 24px;
+
+  /* Shadows */
+  --shadow-card: 0 8px 24px rgba(0,0,0,0.06);
+  --shadow-card-hover: 0 12px 32px rgba(0,0,0,0.10);
+  --shadow-nav: 0 1px 0 rgba(0,0,0,0.06);
+
+  /* Keyframe animations */
+  --animate-shimmer: shimmer 1.8s infinite linear;
+  --animate-fade-in-up: fadeInUp 0.5s ease-out forwards;
+  --animate-slide-down: slideDown 0.2s ease-out forwards;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes fadeInUp {
+  0%   { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  0%   { opacity: 0; transform: translateY(-8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Base resets ────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #FAFAFA;
+  color: #0A0A0A;
+  margin: 0;
+}
+
+/* ── Selection ────────────────────────────────────────────────────────────── */
+::selection {
+  background-color: #EAF1FB;
+  color: #0A0A0A;
+}
+
+/* ── Skeleton shimmer utility ────────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite linear;
+  border-radius: 8px;
+}
+
+/* ── Eyebrow label ─────────────────────────────────────────────────────────── */
+.eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9CA3AF;
+}
+
+/* ── Pill buttons ──────────────────────────────────────────────────────────── */
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  outline: none;
+  border: none;
+}
+
+.btn-pill:focus-visible {
+  outline: 2px solid #111111;
+  outline-offset: 2px;
+}
+
+.btn-solid {
+  background-color: #111111;
+  color: #ffffff;
+  border: 1px solid #111111;
+}
+
+.btn-solid:hover:not(:disabled)  { background-color: #2a2a2a; border-color: #2a2a2a; }
+.btn-solid:active:not(:disabled) { background-color: #000000; }
+.btn-solid:disabled               { opacity: 0.45; cursor: not-allowed; }
+
+.btn-outline {
+  background-color: transparent;
+  color: #0A0A0A;
+  border: 1px solid #E5E7EB;
+}
+
+.btn-outline:hover:not(:disabled)  { background-color: #F5F6F8; border-color: #D1D5DB; }
+.btn-outline:active:not(:disabled) { background-color: #EAECEF; }
+.btn-outline:disabled               { opacity: 0.45; cursor: not-allowed; }
+
+/* ── Cards ─────────────────────────────────────────────────────────────────── */
+.card {
+  background-color: #ffffff;
+  border: 1px solid #EEEEEE;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+}
+
+.card-lg { border-radius: 24px; }
+
+/* ── Rounded shorthand helpers (used inline in JSX) ────────────────────────── */
+.rounded-card    { border-radius: 16px; }
+.rounded-card-lg { border-radius: 24px; }
+
+/* ── Shadow helpers ─────────────────────────────────────────────────────────── */
+.shadow-card      { box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+.shadow-card-hover{ box-shadow: 0 12px 32px rgba(0,0,0,0.10); }
+.shadow-nav       { box-shadow: 0 1px 0 rgba(0,0,0,0.06); }
+
+/* ── Status badges ─────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.badge-gray   { background-color: #F3F4F6; color: #6B7280; }
+.badge-yellow { background-color: #FEF9C3; color: #92400E; }
+.badge-green  { background-color: #DCFCE7; color: #166534; }
+.badge-red    { background-color: #FEE2E2; color: #991B1B; }
+.badge-blue   { background-color: #DBEAFE; color: #1E40AF; }
+
+/* ── Spinner ─────────────────────────────────────────────────────────────── */
+.spinner {
+  display: inline-block;
+  width: 1.125em;
+  height: 1.125em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Animations ─────────────────────────────────────────────────────────── */
+.animate-fade-in-up  { animation: fadeInUp 0.5s ease-out forwards; }
+.animate-slide-down  { animation: slideDown 0.2s ease-out forwards; }
+.animate-shimmer     { animation: shimmer 1.8s infinite linear; }
+
+/* ── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+
+/* ── Focus ring normalization ─────────────────────────────────────────────── */
+input:focus, select:focus, textarea:focus, button:focus { outline: none; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible {
+  outline: 2px solid #111111;
+  outline-offset: 2px;
+}
