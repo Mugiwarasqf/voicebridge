@@ -8,7 +8,7 @@ terraform/.builds/
 crash.log
 override.tf
 override.tf.json
-
+deploy.yml
 
 # Python
 __pycache__/
