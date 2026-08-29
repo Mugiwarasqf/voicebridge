@@ -18,7 +18,7 @@ const FOOTER_LINKS: Array<{ heading: string; links: Array<{ label: string; href:
   {
     heading: "Resources",
     links: [
-      { label: "Docs", href: "#docs" },
+    
       { label: "API Reference", href: "#docs" },
       { label: "Tutorial", href: "#" },
       { label: "System Guide", href: "#" },
@@ -80,8 +80,8 @@ export function Footer() {
             <Link href="/" aria-label="VoiceBridge home">
               <Logo variant="light" size={26} />
             </Link>
-            <p className="mt-4 text-sm text-[#6B7280] leading-relaxed max-w-[180px]">
-              Your voice infrastructure, on your terms.
+            <p className="mt-4 text-sm text-[#6B7280] leading-relaxed max-w-[200px]">
+               Generate natural speech and accurate transcripts. 
             </p>
           </div>
 
@@ -111,7 +111,7 @@ export function Footer() {
         {/* Bottom row */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-[#4B5563]">
           <span>© {new Date().getFullYear()} VoiceBridge. All rights reserved.</span>
-          <span>Built on AWS · Powered by Polly &amp; Transcribe</span>
+          <span>Private Voice Infrastructure </span>
         </div>
       </div>
     </footer>

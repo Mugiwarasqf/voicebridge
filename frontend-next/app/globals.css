@@ -1,5 +1,27 @@
 @import "tailwindcss";
 
+
+@keyframes wave-pulse {
+  0%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.6);
+  }
+}
+
+.animate-wave-pulse {
+  animation: wave-pulse 1.2s ease-in-out infinite;
+  transform-origin: bottom;
+}
+
+
+
+
+
+
+
+
 /* ── Tailwind v4: custom theme tokens ─────────────────────────────────────── */
 @theme {
   --font-sans: "Inter", system-ui, sans-serif;

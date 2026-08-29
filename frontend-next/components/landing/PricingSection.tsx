@@ -3,52 +3,58 @@ import Link from "next/link";
 
 const TIERS = [
   {
-    name: "Light",
+    name: "Free",
     badge: null,
-    cost: "~$4.55",
+    cost: "$0",
     period: "/ month",
-    description: "Perfect for personal projects and prototyping.",
+    description: "Try out text-to-speech and transcription with no commitment.",
     includes: [
-      "~500 TTS requests (avg 200 words each)",
-      "~100 minutes of transcription",
-      "Free-tier Lambda & API Gateway",
-      "S3 + CloudFront hosting (~$0.50)",
-      "Cognito (free under 50K MAU)",
+      "10,000 TTS characters / month",
+      "Standard voice engine",
+      "30 minutes of transcription / month",
+      "Limited voice selection",
+      "In-app playback (no downloads)",
     ],
-    cta: "Deploy to My AWS",
+    cta: "Get Started Free",
+    href: "/signup",
     elevated: false,
+    downloadEnabled: false,
   },
   {
-    name: "Moderate",
-    badge: "Most Common",
-    cost: "~$20",
+    name: "Pro",
+    badge: "Most Popular",
+    cost: "$9",
     period: "/ month",
-    description: "Ideal for small teams, internal tools, and MVPs.",
+    description: "For regular use — full voice quality and more transcription minutes.",
     includes: [
-      "~5,000 TTS requests",
-      "~500 minutes of transcription",
-      "Everything in Light",
-      "Roughly 10× the request volume",
-      "Costs scale linearly — no surprises",
+      "150,000 TTS characters / month",
+      "Neural + Standard voice engines",
+      "300 minutes of transcription / month",
+      "Full voice library",
+      "Download generated audio",
     ],
-    cta: "Deploy to My AWS",
+    cta: "Upgrade to Pro",
+    href: "/signup?plan=pro",
     elevated: true,
+    downloadEnabled: true,
   },
   {
-    name: "Heavy",
+    name: "Team",
     badge: null,
-    cost: "~$70",
+    cost: "$29",
     period: "/ month",
-    description: "High-throughput workloads and production apps.",
+    description: "Built for teams with heavier, ongoing production needs.",
     includes: [
-      "~50,000 TTS requests",
-      "~2,000 minutes of transcription",
-      "Everything in Moderate",
-      "Polly & Transcribe are the cost drivers",
-      "Add usage quotas per user if selling access",
+      "750,000 TTS characters / month",
+      "Neural + Standard voice engines",
+      "1,500 minutes of transcription / month",
+      "Full voice library",
+      "Download generated audio",
     ],
-    cta: "Deploy to My AWS",
+    cta: "Upgrade to Team",
+    href: "/signup?plan=team",
     elevated: false,
+    downloadEnabled: true,
   },
 ];
 
@@ -63,11 +69,10 @@ export function PricingSection() {
             className="font-bold text-[#0A0A0A] mb-4"
             style={{ fontSize: "clamp(1.75rem,3.5vw,2.5rem)", lineHeight: 1.15 }}
           >
-            Estimate Your Monthly Cost
+            Simple, straightforward pricing
           </h2>
           <p className="text-[#6B7280] text-base max-w-lg mx-auto leading-relaxed">
-            You pay AWS directly — no VoiceBridge subscription. These are real
-            cost estimates based on current AWS pricing in <strong>eu-west-2</strong>.
+            Start free. Upgrade when you need more speech, more minutes, or the ability to download your audio.
           </p>
         </div>
 
@@ -122,27 +127,17 @@ export function PricingSection() {
                 ))}
               </ul>
 
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`btn-pill w-full text-sm ${
+              <Link
+                href={tier.href}
+                className={`btn-pill w-full text-sm block text-center ${
                   tier.elevated ? "btn-solid" : "btn-outline"
                 }`}
               >
                 {tier.cta}
-              </a>
+              </Link>
             </div>
           ))}
         </div>
-
-        <p className="text-center text-xs text-[#9CA3AF] mt-8">
-          Pricing based on AWS eu-west-2. See{" "}
-          <a href="https://aws.amazon.com/polly/pricing/" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#6B7280]">Polly</a>
-          {" "}and{" "}
-          <a href="https://aws.amazon.com/transcribe/pricing/" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#6B7280]">Transcribe</a>
-          {" "}pricing pages for current rates.
-        </p>
       </div>
     </section>
   );

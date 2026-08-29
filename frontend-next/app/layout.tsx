@@ -12,15 +12,15 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "VoiceBridge — Text & Speech on Your AWS",
+    default: "VoiceBridge — Private Text-to-Speech & Speech-to-Text",
     template: "%s | VoiceBridge",
   },
   description:
-    "Convert text to natural-sounding speech and speech to text using Amazon Polly and Transcribe — deployed in your own AWS account, pay only for what you use.",
+    "Production-grade text-to-speech and speech-to-text web application deployed directly into your own AWS account. Complete data privacy and zero SaaS markup.",
   openGraph: {
-    title: "VoiceBridge — Text & Speech on Your AWS",
+    title: "VoiceBridge — Private Text-to-Speech & Speech-to-Text",
     description:
-      "Self-hosted, serverless text-to-speech and speech-to-text. Own your data, pay per use.",
+      "Production-grade text-to-speech and speech-to-text web application deployed directly into your own AWS account. Complete data privacy and zero SaaS markup.",
     type: "website",
   },
 };
